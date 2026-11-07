@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { UserSession } from '@/types/legal';
 
+export const runtime = 'edge';
+
 export async function GET() {
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get('scalyth_legal_session');

@@ -21,26 +21,47 @@ async function test() {
   const loginData = await loginRes.json();
   console.log("Login user:", loginData.user?.userName);
 
-  // 3. Test list files
+  // 3. Test list or create file
   console.log("--> Listing vault files...");
-  const filesRes = await fetch(`${base}/api/files`);
-  const filesData = await filesRes.json();
+  let filesRes = await fetch(`${base}/api/files`);
+  let filesData = await filesRes.json();
   console.log("Files count:", filesData.files?.length);
-  const founderFile = filesData.files?.find(f => f.name.includes("Founder_Disclosure"));
-  console.log("Found founder disclosure:", founderFile?.name, "Protected:", founderFile?.isPasswordProtected);
+
+  let targetFile = filesData.files?.[0];
+  if (!targetFile) {
+    console.log("--> Vault starts completely empty (zero fake files). Creating test protected file...");
+    const createRes = await fetch(`${base}/api/files`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Scalyth_Founder_Disclosure_Statement_2026.md",
+        folderId: "folder-founder-disclosure",
+        description: "Official Founder disclosure covering equity, covenants, and commitments for Tanmay.",
+        category: "Founder Disclosure",
+        isPasswordProtected: true,
+        password: "FOUNDER2026",
+        content: "# Scalyth Technologies - Founder Disclosure\n\nFounder: Tanmay\nRole: Founder & CEO\nStatus: Verified\nDate: 2026",
+        userName: "Tanmay (Founder & CEO)",
+      })
+    });
+    console.log("Create status:", createRes.status);
+    const created = await createRes.json();
+    console.log("Created file response:", created);
+    targetFile = created.file;
+  }
 
   // 4. Test wrong password for protected file
   console.log("--> Testing wrong file password unlock...");
-  const wrongFileUnlock = await fetch(`${base}/api/files/${founderFile.id}/access`, {
+  const wrongFileUnlock = await fetch(`${base}/api/files/${targetFile.id}/access`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password: "INCORRECT_PASS", userName: "Tanmay (Founder & CEO)" })
   });
-  console.log("Wrong file unlock status:", wrongFileUnlock.status);
+  console.log("Wrong file unlock status (expected 403):", wrongFileUnlock.status);
 
   // 5. Test correct file unlock with FOUNDER2026
   console.log("--> Testing correct file password unlock...");
-  const unlockRes = await fetch(`${base}/api/files/${founderFile.id}/access`, {
+  const unlockRes = await fetch(`${base}/api/files/${targetFile.id}/access`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password: "FOUNDER2026", userName: "Tanmay (Founder & CEO)" })

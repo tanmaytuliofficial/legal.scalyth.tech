@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { parseUserAgent, extractClientIp } from '@/lib/device-parser';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { LegalFolder, LegalFile, AccessLog } from '@/types/legal';
 
 interface VaultDatabase {
@@ -13,8 +11,6 @@ interface VaultDatabase {
     lastUpdated: string;
   };
 }
-
-const DB_PATH = path.join(process.cwd(), 'data', 'legal-vault.json');
 
 const INITIAL_FOLDERS: LegalFolder[] = [
   {
@@ -46,53 +42,69 @@ const INITIAL_FOLDERS: LegalFolder[] = [
   },
 ];
 
-// No fake files - empty clean vault ready for real documents
 const INITIAL_FILES: LegalFile[] = [];
-
 const INITIAL_LOGS: AccessLog[] = [];
 
-function initDB(): VaultDatabase {
-  if (!fs.existsSync(DB_PATH)) {
-    const defaultData: VaultDatabase = {
-      folders: INITIAL_FOLDERS,
-      files: INITIAL_FILES,
-      logs: INITIAL_LOGS,
-      meta: {
-        version: '2.0.0',
-        vaultName: 'Scalyth Legal Vault',
-        organization: 'Scalyth Technologies Inc.',
-        lastUpdated: new Date().toISOString(),
-      },
-    };
-    fs.writeFileSync(DB_PATH, JSON.stringify(defaultData, null, 2), 'utf-8');
-    return defaultData;
-  }
+// Global in-memory state (safe across Edge, Serverless, and Node runtimes)
+let memoryDB: VaultDatabase = {
+  folders: INITIAL_FOLDERS,
+  files: INITIAL_FILES,
+  logs: INITIAL_LOGS,
+  meta: {
+    version: '2.0.0',
+    vaultName: 'Scalyth Legal Vault',
+    organization: 'Scalyth Technologies Inc.',
+    lastUpdated: new Date().toISOString(),
+  },
+};
 
-  try {
-    const raw = fs.readFileSync(DB_PATH, 'utf-8');
-    const parsed = JSON.parse(raw) as VaultDatabase;
-    return parsed;
-  } catch (err) {
-    console.error('Error reading vault DB, resetting to defaults:', err);
-    const defaultData: VaultDatabase = {
-      folders: INITIAL_FOLDERS,
-      files: INITIAL_FILES,
-      logs: INITIAL_LOGS,
-      meta: {
-        version: '2.0.0',
-        vaultName: 'Scalyth Legal Vault',
-        organization: 'Scalyth Technologies Inc.',
-        lastUpdated: new Date().toISOString(),
-      },
-    };
-    fs.writeFileSync(DB_PATH, JSON.stringify(defaultData, null, 2), 'utf-8');
-    return defaultData;
+function getFsModule() {
+  if (typeof process === 'undefined' || process.env.NEXT_RUNTIME === 'edge') {
+    return null;
   }
+  try {
+    // Dynamic eval prevents Webpack from bundling Node internals in Edge runtime
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const req = eval('require');
+    const fs = req('fs');
+    const path = req('path');
+    const dbPath = path.join(process.cwd(), 'data', 'legal-vault.json');
+    return { fs, dbPath };
+  } catch {
+    return null;
+  }
+}
+
+function initDB(): VaultDatabase {
+  const nodeFs = getFsModule();
+  if (nodeFs) {
+    try {
+      if (nodeFs.fs.existsSync(nodeFs.dbPath)) {
+        const raw = nodeFs.fs.readFileSync(nodeFs.dbPath, 'utf-8');
+        memoryDB = JSON.parse(raw);
+        return memoryDB;
+      } else {
+        nodeFs.fs.writeFileSync(nodeFs.dbPath, JSON.stringify(memoryDB, null, 2), 'utf-8');
+        return memoryDB;
+      }
+    } catch {
+      return memoryDB;
+    }
+  }
+  return memoryDB;
 }
 
 function saveDB(data: VaultDatabase): void {
   data.meta.lastUpdated = new Date().toISOString();
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+  memoryDB = data;
+  const nodeFs = getFsModule();
+  if (nodeFs) {
+    try {
+      nodeFs.fs.writeFileSync(nodeFs.dbPath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch {
+      // In-memory update maintained on Edge
+    }
+  }
 }
 
 function stripPassword(file: LegalFile): LegalFile {
