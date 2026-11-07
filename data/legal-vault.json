@@ -1,0 +1,182 @@
+{
+  "folders": [
+    {
+      "id": "folder-founder-disclosure",
+      "name": "Founder Disclosures",
+      "description": "Founder declarations, equity covenants, and disclosures",
+      "createdAt": "2026-11-07T17:24:15.130Z",
+      "updatedAt": "2026-11-07T17:24:15.131Z"
+    },
+    {
+      "id": "folder-agreements-ndas",
+      "name": "Agreements & NDAs",
+      "description": "Contracts, NDAs, and service agreements",
+      "createdAt": "2026-11-07T17:24:15.131Z",
+      "updatedAt": "2026-11-07T17:24:15.131Z"
+    },
+    {
+      "id": "folder-corporate-records",
+      "name": "Corporate Records",
+      "description": "Board resolutions, compliance, and corporate filings",
+      "createdAt": "2026-11-07T17:24:15.131Z",
+      "updatedAt": "2026-11-07T17:24:15.131Z"
+    }
+  ],
+  "files": [],
+  "logs": [
+    {
+      "fileId": "file-1794072235096-u6gus",
+      "fileName": "Scalyth_Statutory_Founder_Disclosure_2026.md",
+      "folderId": "folder-1794072199897-sjw8i",
+      "userName": "Tanmay (Founder)",
+      "userRole": "Founder / Managing Director",
+      "action": "VIEW",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Desktop Workstation",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Viewed document contents securely via Google Chrome 156 on Windows 10/11",
+      "id": "log-1794072248507-f19yi",
+      "timestamp": "2026-11-07T17:24:08.507Z"
+    },
+    {
+      "fileId": "file-1794072235096-u6gus",
+      "fileName": "Scalyth_Statutory_Founder_Disclosure_2026.md",
+      "folderId": "folder-1794072199897-sjw8i",
+      "userName": "Tanmay (Founder)",
+      "userRole": "Founder / Administrator",
+      "action": "CREATE",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Desktop Workstation",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Uploaded/Created file: Scalyth_Statutory_Founder_Disclosure_2026.md (Encrypted with Custom PIN)",
+      "id": "log-1794072235128-48s98",
+      "timestamp": "2026-11-07T17:23:55.128Z"
+    },
+    {
+      "folderId": "folder-1794072199897-sjw8i",
+      "userName": "Tanmay (Founder)",
+      "userRole": "Founder / Administrator",
+      "action": "CREATE",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Desktop Workstation",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Created new legal folder: \"DEMO\"",
+      "id": "log-1794072199898-9fknl",
+      "timestamp": "2026-11-07T17:23:19.898Z"
+    },
+    {
+      "userName": "Tanmay (Founder)",
+      "userRole": "Founder / Executive Partner",
+      "action": "LOGIN",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Win32",
+        "screenResolution": "1366x768",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Authenticated with Master Pass on Windows 10/11 (Google Chrome 156)",
+      "id": "log-1794072182985-nakit",
+      "timestamp": "2026-11-07T17:23:02.985Z"
+    },
+    {
+      "userName": "Tanmay (Founder)",
+      "userRole": "Guest / Unauthorized",
+      "action": "LOGIN",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Win32",
+        "screenResolution": "1366x768",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "DENIED",
+      "notes": "Invalid master password entered",
+      "id": "log-1794072179760-e12cq",
+      "timestamp": "2026-11-07T17:22:59.760Z"
+    },
+    {
+      "userName": "Tanmay",
+      "userRole": "Founder / Executive Partner",
+      "action": "LOGIN",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Win32",
+        "screenResolution": "1366x768",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Authenticated with Master Pass on Windows 10/11 (Google Chrome 156)",
+      "id": "log-1794071516843-3mqmv",
+      "timestamp": "2026-11-07T17:11:56.843Z"
+    },
+    {
+      "userName": "Tanmay",
+      "userRole": "Founder / Executive Partner",
+      "action": "LOGIN",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Win32",
+        "screenResolution": "1366x768",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "SUCCESS",
+      "notes": "Authenticated with Master Pass on Windows 10/11 (Google Chrome 156)",
+      "id": "log-1794069412426-k088x",
+      "timestamp": "2026-11-07T16:36:52.426Z"
+    },
+    {
+      "userName": "Tanmay",
+      "userRole": "Guest / Unauthorized",
+      "action": "LOGIN",
+      "device": {
+        "browser": "Google Chrome 156",
+        "os": "Windows 10/11",
+        "deviceType": "Desktop",
+        "platform": "Win32",
+        "screenResolution": "1366x768",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+      },
+      "ipAddress": "127.0.0.1 (Localhost / Secure VPC)",
+      "status": "DENIED",
+      "notes": "Invalid master password entered",
+      "id": "log-1794069405248-h8ywh",
+      "timestamp": "2026-11-07T16:36:45.248Z"
+    }
+  ],
+  "meta": {
+    "version": "2.0.0",
+    "vaultName": "Scalyth Legal Vault",
+    "organization": "Scalyth Technologies Inc.",
+    "lastUpdated": "2026-11-07T17:24:08.507Z"
+  }
+}

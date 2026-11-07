@@ -1,101 +1,321 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { LoginPage } from '@/components/LoginPage';
+import { Navbar } from '@/components/Navbar';
+import { FileLibraryView } from '@/components/FileLibraryView';
+import { AuditLogsView } from '@/components/AuditLogsView';
+import { PasswordModal } from '@/components/PasswordModal';
+import { DocumentViewerModal } from '@/components/DocumentViewerModal';
+import { AuditHistoryModal } from '@/components/AuditHistoryModal';
+import { NewFileModal } from '@/components/NewFileModal';
+import { NewFolderModal } from '@/components/NewFolderModal';
+import { LegalFolder, LegalFile, UserSession } from '@/types/legal';
+import { getClientDeviceHints } from '@/lib/client-device';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Navigation
+  const [currentTab, setCurrentTab] = useState<'files' | 'audit'>('files');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Data
+  const [folders, setFolders] = useState<LegalFolder[]>([]);
+  const [files, setFiles] = useState<LegalFile[]>([]);
+  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+
+  // Modals
+  const [fileToUnlock, setFileToUnlock] = useState<LegalFile | null>(null);
+  const [viewingFile, setViewingFile] = useState<LegalFile | null>(null);
+  const [historyFile, setHistoryFile] = useState<LegalFile | null>(null);
+  const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false);
+  const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
+
+  // Check existing session
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            setSession(data);
+          }
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+      } finally {
+        setLoadingSession(false);
+      }
+    }
+    checkSession();
+  }, []);
+
+  // Fetch folders and files when authenticated
+  const loadVaultData = async () => {
+    try {
+      const [foldersRes, filesRes] = await Promise.all([
+        fetch('/api/folders'),
+        fetch('/api/files'),
+      ]);
+
+      if (foldersRes.ok) {
+        const fData = await foldersRes.json();
+        setFolders(fData.folders || []);
+      }
+      if (filesRes.ok) {
+        const flData = await filesRes.json();
+        setFiles(flData.files || []);
+      }
+    } catch (err) {
+      console.error('Failed to load vault data:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (session?.authenticated) {
+      loadVaultData();
+    }
+  }, [session]);
+
+  const handleLoginSuccess = (userData: UserSession) => {
+    setSession(userData);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error(e);
+    }
+    setSession(null);
+  };
+
+  // Open file handler (checks password first)
+  const handleOpenFile = async (file: LegalFile) => {
+    if (file.isPasswordProtected) {
+      // Trigger password prompt
+      setFileToUnlock(file);
+    } else {
+      // Direct access
+      try {
+        const clientHint = getClientDeviceHints();
+        const res = await fetch(`/api/files/${file.id}/access`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'VIEW',
+            userName: session?.userName || 'Scalyth Founder',
+            clientHint,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setViewingFile(data.file);
+          loadVaultData(); // refresh access count
+        }
+      } catch (err) {
+        console.error('File view error:', err);
+      }
+    }
+  };
+
+  // Unlocked successfully via modal
+  const handleUnlockSuccess = (unlockedFile: LegalFile) => {
+    setFileToUnlock(null);
+    setViewingFile(unlockedFile);
+    loadVaultData(); // update counters
+  };
+
+  // Download handler (logs download event)
+  const handleDownloadFile = async (file: LegalFile) => {
+    try {
+      const clientHint = getClientDeviceHints();
+      let enteredPassword = '';
+      if (file.isPasswordProtected) {
+        enteredPassword = prompt(`Enter password to download "${file.name}":`) || '';
+        if (!enteredPassword) return;
+      }
+
+      const res = await fetch(`/api/files/${file.id}/access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DOWNLOAD',
+          password: enteredPassword,
+          userName: session?.userName || 'Scalyth Founder',
+          clientHint,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to download file: password incorrect');
+        return;
+      }
+
+      // Download payload as file
+      const blob = new Blob([data.file.content || ''], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      loadVaultData();
+    } catch (err) {
+      console.error('Download error:', err);
+    }
+  };
+
+  // Delete file
+  const handleDeleteFile = async (file: LegalFile) => {
+    if (!confirm(`Are you sure you want to permanently delete "${file.name}"? This action will be audited.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/files/${file.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFiles((prev) => prev.filter((f) => f.id !== file.id));
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
+  // Delete folder
+  const handleDeleteFolder = async (folderId: string) => {
+    if (!confirm('Are you sure you want to delete this folder and its documents?')) return;
+    try {
+      const res = await fetch(`/api/folders/${folderId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFolders((prev) => prev.filter((f) => f.id !== folderId));
+        if (activeFolderId === folderId) setActiveFolderId(null);
+        loadVaultData();
+      }
+    } catch (err) {
+      console.error('Delete folder error:', err);
+    }
+  };
+
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-neutral-400">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-5 h-5 border-2 border-neutral-700 border-t-white rounded-full animate-spin" />
+          <p className="text-xs text-neutral-500">Loading...</p>
         </div>
+      </div>
+    );
+  }
+
+  // If not logged in, render the login page
+  if (!session?.authenticated) {
+    return <LoginPage onSuccess={handleLoginSuccess} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-neutral-800 selection:text-white">
+      {/* Top Navbar */}
+      <Navbar
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onOpenNewFolder={() => setIsNewFolderModalOpen(true)}
+        onOpenNewFile={() => setIsNewFileModalOpen(true)}
+        onLogout={handleLogout}
+        userName={session.userName}
+        deviceSummary={session.deviceSummary}
+      />
+
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {currentTab === 'files' ? (
+          <FileLibraryView
+            folders={folders}
+            files={files}
+            activeFolderId={activeFolderId}
+            setActiveFolderId={setActiveFolderId}
+            searchQuery={searchQuery}
+            onOpenFile={handleOpenFile}
+            onViewHistory={(file) => setHistoryFile(file)}
+            onDownloadFile={handleDownloadFile}
+            onDeleteFile={handleDeleteFile}
+            onDeleteFolder={handleDeleteFolder}
+            onOpenNewFolder={() => setIsNewFolderModalOpen(true)}
+            onOpenNewFile={() => setIsNewFileModalOpen(true)}
+          />
+        ) : (
+          <AuditLogsView />
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Password Modal for locked files */}
+      {fileToUnlock && (
+        <PasswordModal
+          file={fileToUnlock}
+          onClose={() => setFileToUnlock(null)}
+          onUnlockSuccess={handleUnlockSuccess}
+          userName={session.userName}
+        />
+      )}
+
+      {/* Document Reader Modal */}
+      {viewingFile && (
+        <DocumentViewerModal
+          file={viewingFile}
+          onClose={() => setViewingFile(null)}
+          onViewHistory={(file) => {
+            setViewingFile(null);
+            setHistoryFile(file);
+          }}
+          onDownload={handleDownloadFile}
+          userName={session.userName}
+        />
+      )}
+
+      {/* File Audit History Modal */}
+      {historyFile && (
+        <AuditHistoryModal
+          file={historyFile}
+          onClose={() => setHistoryFile(null)}
+        />
+      )}
+
+      {/* New File / Document Modal */}
+      {isNewFileModalOpen && (
+        <NewFileModal
+          folders={folders}
+          activeFolderId={activeFolderId}
+          onClose={() => setIsNewFileModalOpen(false)}
+          onFileCreated={(newFile) => {
+            setIsNewFileModalOpen(false);
+            setFiles((prev) => [newFile, ...prev]);
+            loadVaultData();
+          }}
+          userName={session.userName}
+        />
+      )}
+
+      {/* New Folder Modal */}
+      {isNewFolderModalOpen && (
+        <NewFolderModal
+          onClose={() => setIsNewFolderModalOpen(false)}
+          onFolderCreated={(newFolder) => {
+            setIsNewFolderModalOpen(false);
+            setFolders((prev) => [...prev, newFolder]);
+            setActiveFolderId(newFolder.id);
+          }}
+          userName={session.userName}
+        />
+      )}
     </div>
   );
 }
